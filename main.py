@@ -5,10 +5,10 @@ import pygame as pg
 pg.init()
 
 WIN_SIZE = (1280, 640)
-cols, rows = 80, 40
+cols, rows = 160, 80
 
 def make2darray(cols, rows):
-    return [[1 if np.random.uniform(0, 1) > 0.9 else 0 for x in range(cols)] for y in range(rows)]
+    return [[1 if np.random.uniform(0, 1) > 0.5 else 0 for x in range(cols)] for y in range(rows)]
     
 def draw_grid(cols, rows, content):
     width = WIN_SIZE[0]//cols
@@ -63,7 +63,7 @@ def grid_cal(grid):
 grid = make2darray(cols, rows)
 
 CLOCK = pg.time.Clock()
-FPS = 30
+FPS = 120
 SURFACE = pg.display.set_mode(WIN_SIZE)
 run = True
 while run:
