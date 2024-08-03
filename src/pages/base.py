@@ -15,8 +15,9 @@ class Page:
     def draw(self):
         raise NotImplementedError
 
-    def handle_event(self, event):
-        raise NotImplementedError
+    def handle_event(self, event):  # main game does not need to handle events
+        # raise NotImplementedError
+        pass
     
     def pause(self):
         self._pause = not self._pause
