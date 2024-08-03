@@ -5,7 +5,7 @@ from ..util import Mouse
 from ..settings import *
 from .base import Page
 from ..map import Map
-
+from ..gol import GoL
 
 def gen_asset(name, n_var, color, size=32):
     variances = []
@@ -27,12 +27,13 @@ class SinglePlayerPage(Page):
         self.map = Map(self)
 
         self.map.load("map/1.json")
+        self.gameoflifes = [] 
 
     def update_assets_size(self, size):
         self.assets.update(gen_asset('stone', 5, 'gray', size))
 
     def camera(self, offset, is_zoomable):
-        if pg.mouse.get_pressed()[0]:       # move map
+        if pg.mouse.get_pressed()[0] and pg.key.get_pressed()[pg.K_LCTRL]:       # move map
             dx, dy = pg.mouse.get_rel()
             offset[0] -= dx
             offset[1] -= dy
@@ -86,11 +87,14 @@ class SinglePlayerPage(Page):
                         self.map.tile_size *= 2
                         self.update_assets_size(self.map.tile_size)
                         is_zoomable = True
+                        GoL._tile_size = self.map.tile_size
 
                     elif event.button == 5:
                         if is_zoomable:
                             self.map.tile_size //= 2
                             self.update_assets_size(self.map.tile_size)
+                            GoL._tile_size = self.map.tile_size
+
 
                 if event.type == pg.MOUSEBUTTONUP:
                     if event.button == 1:
@@ -98,9 +102,22 @@ class SinglePlayerPage(Page):
 
             dt = clock.tick(120) / 1000
 
+            if Mouse.click and not pg.key.get_pressed()[pg.K_LCTRL]:
+                x, y = pg.mouse.get_pos()
+                x = (x + offset[0]) // self.map.tile_size
+                y = (y + offset[1]) // self.map.tile_size
+                # print(x, y)
+                if len(self.gameoflifes) < 5 and x != 0 and y != 0 and x != map_w - 1 and y != map_h - 1:
+                    self.gameoflifes.append(GoL(self, 3, (x, y)))
+                    # print(self.gameoflifes)
+
             self.window.fill('black')
             # self.window.fill('white')
             self.map.render(self.window, offset)
+
+            for gol in self.gameoflifes:
+                gol.update()
+                gol.draw(offset)
 
             pg.display.flip()
 
