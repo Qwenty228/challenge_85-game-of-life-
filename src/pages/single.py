@@ -6,6 +6,8 @@ from ..settings import *
 from .base import Page
 from ..map import Map
 from ..gol import GoL
+from ..ui import UI
+
 
 def gen_asset(name, n_var, color, size=32):
     variances = []
@@ -19,7 +21,6 @@ def gen_asset(name, n_var, color, size=32):
 class SinglePlayerPage(Page):
     def __init__(self, menu):
         super().__init__(menu)
-        self.font = pg.font.Font(None, 74)
         self.window = pg.display.get_surface()
 
     def load_assets(self):
@@ -27,7 +28,9 @@ class SinglePlayerPage(Page):
         self.map = Map(self)
 
         self.map.load("map/1.json")
-        self.gameoflifes = [] 
+        self.gameoflifes = []
+
+        self.ui = UI(self, (0, 0.8*HEIGHT, WIDTH, 0.2*HEIGHT))
 
     def update_assets_size(self, size):
         self.assets.update(gen_asset('stone', 5, 'gray', size))
@@ -40,8 +43,8 @@ class SinglePlayerPage(Page):
 
         if offset[1] < 0:
             offset[1] = 0
-        elif offset[1] > map_h * self.map.tile_size - HEIGHT:
-            offset[1] = map_h * self.map.tile_size - HEIGHT
+        elif offset[1] > map_h * self.map.tile_size - HEIGHT + self.ui.rect.h:
+            offset[1] = map_h * self.map.tile_size - HEIGHT + self.ui.rect.h
         if offset[0] < 0:
             offset[0] = 0
         elif offset[0] > map_w * self.map.tile_size - WIDTH:
@@ -50,9 +53,9 @@ class SinglePlayerPage(Page):
         if map_w * self.map.tile_size < WIDTH:
             is_zoomable = False
             offset[0] = (map_w * self.map.tile_size - WIDTH) // 2
-        if map_h * self.map.tile_size < HEIGHT:
+        if map_h * self.map.tile_size < HEIGHT - self.ui.rect.h:
             is_zoomable = False
-            offset[1] = (map_h * self.map.tile_size - HEIGHT) // 2
+            offset[1] = (map_h * self.map.tile_size - HEIGHT + self.ui.rect.h) // 2
 
         return offset, is_zoomable
 
@@ -95,14 +98,13 @@ class SinglePlayerPage(Page):
                             self.update_assets_size(self.map.tile_size)
                             GoL._tile_size = self.map.tile_size
 
-
                 if event.type == pg.MOUSEBUTTONUP:
                     if event.button == 1:
                         Mouse.unclick = True
 
-            dt = clock.tick(120) / 1000
+            clock.tick(120)
 
-            if Mouse.click and not pg.key.get_pressed()[pg.K_LCTRL]:
+            if Mouse.click and not pg.key.get_pressed()[pg.K_LCTRL] and not self.ui.rect.collidepoint(pg.mouse.get_pos()):
                 x, y = pg.mouse.get_pos()
                 x = (x + offset[0]) // self.map.tile_size
                 y = (y + offset[1]) // self.map.tile_size
@@ -112,12 +114,14 @@ class SinglePlayerPage(Page):
                     # print(self.gameoflifes)
 
             self.window.fill('black')
-            # self.window.fill('white')
+            
             self.map.render(self.window, offset)
 
             for gol in self.gameoflifes:
                 gol.update()
                 gol.draw(offset)
+
+            self.ui.draw()
 
             pg.display.flip()
 

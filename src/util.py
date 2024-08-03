@@ -38,7 +38,7 @@ class Mouse:
 
 
 class Button:
-    def __init__(self, win, text, font, color, x, y, width, height, action=None):
+    def __init__(self, win, text, font, color, x, y, width, height, callback: callable=None):
         self.win = win
         self.text = text
         self.font = font
@@ -47,7 +47,7 @@ class Button:
         self.y = y
         self.width = width
         self.height = height
-        self.action = action
+        self.callback = callback 
         self.rect = pg.Rect(x, y, width, height)
         self.clicked = False
         self.hovered = False
@@ -62,13 +62,15 @@ class Button:
         draw_text(self.win, self.text, self.font, (0, 0, 0), self.x +
                   self.width//2, self.y + self.height//2, 'center')
 
-    def update(self):
-        self.hovered = self.rect.collidepoint(pg.mouse.get_pos())
+    def update(self, mouse_pos: tuple=None):
+        if not mouse_pos:
+            mouse_pos = pg.mouse.get_pos()  
+        self.hovered = self.rect.collidepoint(mouse_pos)
         if self.hovered:
             if pg.mouse.get_pressed()[0]:
                 self.clicked = Mouse.click
-            if Mouse.unclick and self.action:
-                self.action()
+            if Mouse.unclick and self.callback:
+                self.callback()
         else:
             self.clicked = False
 
