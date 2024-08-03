@@ -27,7 +27,8 @@ class Map:
         with open(path, 'w') as f:
             json.dump({'tilemap': self.tilemap, 'tile_size': self.tile_size,
                       'offgrid': self.offgrid_tiles}, f, indent=4)
-            
+
+        
     def render(self, surf, offset=(0, 0)):
         # for tile in self.offgrid_tiles:
         #     # usually are decorations, like trees, rocks, etc.
