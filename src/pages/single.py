@@ -1,3 +1,4 @@
+import threading
 import pygame as pg
 import sys
 
@@ -5,7 +6,7 @@ from ..util import Mouse
 from ..settings import *
 from .base import Page
 from ..map import Map
-from ..gol import GoL
+from ..gol import GoL, GoLArray
 from ..ui import UI
 
 
@@ -29,6 +30,8 @@ class SinglePlayerPage(Page):
 
         self.map.load("map/1.json")
         self.gameoflifes = []
+
+        self.gol_array = GoLArray(self, (map_w, map_h))
 
         self.ui = UI(self, (0, 0.8*HEIGHT, WIDTH, 0.2*HEIGHT))
 
@@ -66,6 +69,10 @@ class SinglePlayerPage(Page):
 
         offset = [0, 0]
         is_zoomable = True
+
+        computation_thread = threading.Thread(target=self.gol_array.daemon)
+        computation_thread.daemon = True  # Allow the thread to exit when the main program exits
+        computation_thread.start()
 
         while True:
             pg.display.set_caption(f"Single Player: {clock.get_fps():.2f}")
@@ -106,14 +113,15 @@ class SinglePlayerPage(Page):
 
             if Mouse.click and not self.ui.rect.collidepoint(pg.mouse.get_pos()) and self.ui.current_tool == 'rectangle':            
                 x, y = Mouse.map_pos(offset, self.map.tile_size)
-                if x != 0 and y != 0 and x != map_w - 1 and y != map_h - 1:
-                    GoL.spawn(self, 3, (x, y)) # spawn GoL
+                if x != 0 and y != 0 and x != map_w - 4 and y != map_h - 4:
+                    GoL.spawn(self, 5, (x, y)) # spawn GoL
             
                    
 
             self.window.fill('black')
             
             self.map.render(self.window, offset)
+            
 
             for gol in self.gameoflifes:
                 gol.update(Mouse.map_pos(offset, self.map.tile_size))
@@ -127,4 +135,6 @@ class SinglePlayerPage(Page):
                 result = self.pause_screen()
                 if result == -1:
                     self.game.change_page("Main Menu")
+                    self.gol_array.running = False
+                    
                     break
