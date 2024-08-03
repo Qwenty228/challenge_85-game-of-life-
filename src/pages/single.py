@@ -36,7 +36,7 @@ class SinglePlayerPage(Page):
         self.assets.update(gen_asset('stone', 5, 'gray', size))
 
     def camera(self, offset, is_zoomable):
-        if pg.mouse.get_pressed()[0] and pg.key.get_pressed()[pg.K_LCTRL]:       # move map
+        if pg.mouse.get_pressed()[0] and self.ui.current_tool == None:       # move map
             dx, dy = pg.mouse.get_rel()
             offset[0] -= dx
             offset[1] -= dy
@@ -104,21 +104,19 @@ class SinglePlayerPage(Page):
 
             clock.tick(120)
 
-            if Mouse.click and not pg.key.get_pressed()[pg.K_LCTRL] and not self.ui.rect.collidepoint(pg.mouse.get_pos()):
-                x, y = pg.mouse.get_pos()
-                x = (x + offset[0]) // self.map.tile_size
-                y = (y + offset[1]) // self.map.tile_size
-                # print(x, y)
-                if len(self.gameoflifes) < 5 and x != 0 and y != 0 and x != map_w - 1 and y != map_h - 1:
-                    self.gameoflifes.append(GoL(self, 3, (x, y)))
-                    # print(self.gameoflifes)
+            if Mouse.click and not self.ui.rect.collidepoint(pg.mouse.get_pos()) and self.ui.current_tool == 'rectangle':            
+                x, y = Mouse.map_pos(offset, self.map.tile_size)
+                if x != 0 and y != 0 and x != map_w - 1 and y != map_h - 1:
+                    GoL.spawn(self, 3, (x, y)) # spawn GoL
+            
+                   
 
             self.window.fill('black')
             
             self.map.render(self.window, offset)
 
             for gol in self.gameoflifes:
-                gol.update()
+                gol.update(Mouse.map_pos(offset, self.map.tile_size))
                 gol.draw(offset)
 
             self.ui.draw()

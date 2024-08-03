@@ -8,4 +8,4 @@ BLACK = (0, 0, 0)
 BLUE = (0, 0, 255)
 RED = (255, 0, 0)
 
-
+SELECTED_COLOR = (60, 80, 80)

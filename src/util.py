@@ -36,6 +36,13 @@ class Mouse:
         Mouse.click = False
         Mouse.unclick = False
 
+    @staticmethod
+    def map_pos(offset, tile_size):
+        x, y = pg.mouse.get_pos()
+        x = (x + offset[0]) // tile_size
+        y = (y + offset[1]) // tile_size
+        return x, y
+
 
 class Button:
     def __init__(self, win, text, font, color, x, y, width, height, callback: callable=None):
@@ -55,9 +62,9 @@ class Button:
     def draw(self):
         color = self.color
         if self.hovered:
-            color = (100, 100, 100)
+            color = (60, 80, 80)
         if Mouse.unclick and self.hovered:
-            color = (80, 80, 80)
+            color = (50, 50, 50)
         pg.draw.rect(self.win, color, self.rect)
         draw_text(self.win, self.text, self.font, (0, 0, 0), self.x +
                   self.width//2, self.y + self.height//2, 'center')

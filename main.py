@@ -11,10 +11,8 @@ pg.init()
 # Screen dimensions
 
 # Set up the screen
-screen = pg.display.set_mode(SIZE, pg.SCALED)
+screen = pg.display.set_mode(SIZE, pg.SCALED|pg.RESIZABLE)
 pg.display.set_caption("Page Navigator Example")
-
-
 
 
 class Game:
