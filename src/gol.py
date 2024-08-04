@@ -46,7 +46,7 @@ class GoL:
             (self.size[0]*self.tile_size, self.size[1]*self.tile_size), pg.SRCALPHA)
 
         if not self.heart:
-            self.area.fill((0, 0, 100))
+            self.area.fill((0, 0, 0))
         else:
             self.area.fill('gold')
             self.barricade = pg.Surface(
@@ -55,14 +55,6 @@ class GoL:
 
         self.lock = False
         self.dead = False
-
-        # draw grid
-        for x in range(0, self.size[0]*self.tile_size, self.tile_size):
-            pg.gfxdraw.vline(
-                self.area, x, 0, self.size[1]*self.tile_size, (0, 0, 0, 100))
-        for y in range(0, self.size[1]*self.tile_size, self.tile_size):
-            pg.gfxdraw.hline(
-                self.area, 0, self.size[0]*self.tile_size, y, (0, 0, 0, 100))
 
         self.array = np.zeros((*self.size, 4), dtype=np.int32)
 
@@ -76,15 +68,7 @@ class GoL:
             self.size = size, size
         self.area = pg.Surface(
             (self.size[0]*self.tile_size, self.size[1]*self.tile_size), pg.SRCALPHA)
-        self.area.fill((0, 0, 100))
-
-        # draw grid
-        for x in range(0, self.size[0]*self.tile_size, self.tile_size):
-            pg.gfxdraw.vline(
-                self.area, x, 0, self.size[1]*self.tile_size, (0, 0, 0, 100))
-        for y in range(0, self.size[1]*self.tile_size, self.tile_size):
-            pg.gfxdraw.hline(
-                self.area, 0, self.size[0]*self.tile_size, y, (0, 0, 0, 100))
+        self.area.fill((0, 0, 0))
 
         self.array = np.zeros((*self.size, 4), dtype=np.int32)
 
@@ -157,9 +141,7 @@ class GoLArray:
         self.running = True
         self.paused = False
         self.updating = True
-
-        self.prev_data = {}
-
+        
     def update_area(self):
 
         new_board = self.array.copy()
@@ -202,11 +184,10 @@ class GoLArray:
                 self.game.energy -= np.sum(array)
                 area.pos[0] += dx
                 area.pos[1] += dy
-
-            if self.prev_data[area] == area.pos:
-                area.movelimit += 1
+                area.movelimit = 0
             else:
-                area.movelimit = 0  # if moving, it cannot generate energy
+                area.movelimit += 1
+
             if area.movelimit >= MOVEMENT_INDICATOR:   # every 5 interval, calculate energy
                 # Create a mask of positions where array2 has 1s
                 array2_ones = (array == 1)
@@ -219,7 +200,7 @@ class GoLArray:
 
                 # Count the number of different 1s
                 self.game.generate_energy(np.sum(different_ones))
-
+               
                 area.movelimit = 0
 
         self.array[:] = new_board
@@ -250,12 +231,7 @@ class GoLArray:
         for area in self.gameoflifes:
             if area.dead:
                 self.gameoflifes.remove(area)
-                if area in self.prev_data:
-                    del self.prev_data[area]
-                continue
-
-            if not area.lock:
-                self.prev_data[area] = area.pos.copy()
+    
 
     def daemon(self):
         while self.running:

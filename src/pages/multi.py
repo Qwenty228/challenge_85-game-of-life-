@@ -1,9 +1,10 @@
 import pygame as pg
 import sys
 
-from ..util import Mouse
+from ..util import Mouse, Button, Font, draw_text
 from ..settings import WIDTH, HEIGHT
 from .base import Page
+from .client import Client
 
 
 class MultiplayerPage(Page):
@@ -12,41 +13,30 @@ class MultiplayerPage(Page):
         self.font = pg.font.Font(None, 74)
         self.window = pg.display.get_surface()
 
+        self.buttons = [
+            Button(self.window, "Back", Font(size=15), (100, 100, 120), 25, 25, 100, 50, self.game.change_page),
+            Button(self.window, "Join", Font(size=15), (100, 100, 120),  WIDTH/2 - 150, HEIGHT / 2, 100, 50, self.join),
+            Button(self.window, "Host", Font(size=15), (100, 100, 120),  WIDTH/2 + 50, HEIGHT / 2, 100, 50, self.host)
+        ]
+
+    def join(self):
+        print("Joining")
+        Client(self.game, 'join').update()
+
+    def host(self):
+        print("Hosting")
+        Client(self.game, 'host').update()
+
     def update(self):
-        clock = pg.time.Clock()
-        while True:
-            pg.display.set_caption(f"Single Player: {clock.get_fps():.2f}")
-            Mouse.reset()
-            for event in pg.event.get():
-                if event.type == pg.QUIT:
-                    pg.quit()
-                    sys.exit()
-                
-                if event.type == pg.KEYDOWN:
-                    if event.key == pg.K_ESCAPE:
-                        self.pause()
-                    if event.key == pg.K_F11:
-                        pg.display.toggle_fullscreen()
+        for button in self.buttons:
+            button.update()
 
-                if event.type == pg.MOUSEBUTTONDOWN:
-                    if event.button == 1:
-                        Mouse.click = True
-                if event.type == pg.MOUSEBUTTONUP:
-                    if event.button == 1:
-                        Mouse.unclick = True
-            
-            dt = clock.tick(60) / 1000
 
-            self.window.fill('white')
+    def draw(self):
+        self.window.fill('gray20')
+        for button in self.buttons:
+            button.draw()
 
-            text = self.font.render("Multiplayer", True, 'black' if not pg.mouse.get_pressed()[0] else 'red')
-            self.window.blit(text, (WIDTH / 2 - text.get_width() / 2, HEIGHT / 2 - text.get_height() / 2))
-
-            pg.display.flip()
-
-            if self._pause:
-                result = self.pause_screen()
-                if result == -1:
-                    self.game.change_page("Main Menu")
-                    break
-            
+    def handle_event(self, event):
+        if event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
+            self.game.change_page("Main Menu")

@@ -25,7 +25,7 @@ class Game:
         }
         self.current_page = "Main Menu"
 
-    def change_page(self, page_name):
+    def change_page(self, page_name="Main Menu"):
         if page_name.lower().strip() == "quit":
             pg.quit()
             sys.exit()
@@ -42,7 +42,14 @@ class Game:
                 if event.type == pg.QUIT:
                     pg.quit()
                     sys.exit()
+                if event.type == pg.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        Mouse.click = True
+                if event.type == pg.MOUSEBUTTONUP:
+                    if event.button == 1:
+                        Mouse.unclick = True
                 self.pages[self.current_page].handle_event(event)
+                
 
             self.pages[self.current_page].update()
             self.pages[self.current_page].draw()

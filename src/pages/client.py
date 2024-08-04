@@ -1,3 +1,7 @@
+"""
+Client for multiplayer game
+2 players can play the game
+"""
 import threading
 import pygame as pg
 import sys
@@ -9,7 +13,7 @@ from .base import Page
 from ..map import Map
 from ..gol import GoL, GoLArray
 from ..ui import UI
-
+from ..server import Network, stop_server, start_server
 
 
 def gen_asset(name, n_var, color, size=32):
@@ -21,10 +25,16 @@ def gen_asset(name, n_var, color, size=32):
     return {name: variances}
 
 
-class SinglePlayerPage(Page):
-    def __init__(self, menu):
+class Client(Page):
+    def __init__(self, menu, type='host'):
         super().__init__(menu)
         self.window = pg.display.get_surface()
+        if type == 'host':
+            threading.Thread(target=start_server).start()
+            self.network = None
+        else:
+            self.network = Network()
+            self.network.connect()
 
     def load_assets(self):
         self.assets = gen_asset('stone', 5, 'gray')
@@ -84,8 +94,6 @@ class SinglePlayerPage(Page):
         computation_thread = threading.Thread(target=self.gol_array.daemon)
         computation_thread.daemon = True  # Allow the thread to exit when the main program exits
         computation_thread.start()
-
-        
 
         self.heart = GoL.spawn(self, 5, (2, random.randint(2, map_h-7)), self.gameoflifes, True) # spawn GoL
 
@@ -160,13 +168,18 @@ class SinglePlayerPage(Page):
             pg.display.flip()
 
             if self.heart == 'dead':
-                self.game.change_page("Main Menu")
-                self.gol_array.running = False
                 break
 
             if self._pause:
                 result = self.pause_screen()
                 if result == -1:
-                    self.game.change_page("Main Menu")
-                    self.gol_array.running = False
                     break
+        if not self.network:
+            print("Stopping server")
+            stop_server()
+        else:
+            self.network.client.close()
+
+        self.game.change_page("Main Menu")
+        self.gol_array.running = False
+        
