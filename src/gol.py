@@ -11,7 +11,7 @@ class GoL:
     _tile_size = 32
 
     @classmethod
-    def spawn(cls, game, size, pos, gameoflifes, heart = False):
+    def spawn(cls, game, size, pos, gameoflifes, heart=False):
         if isinstance(size, int):
             size = size, size
 
@@ -25,15 +25,15 @@ class GoL:
                 h2 += 2
 
             if not (x1 + w1 <= x2 or x1 >= x2 + w2 or y1 + h1 <= y2 or y1 >= y2 + h2):
-                print('overlapped')
                 return
+
         cls.gameoflifes = gameoflifes
         cls.gameoflifes.append(cls(game, size, pos, heart))
         if heart:
             return cls.gameoflifes[-1]
-        
 
-    def __init__(self, game, size, pos, heart = False) -> None:
+
+    def __init__(self, game, size, pos, heart=False) -> None:
         self.size = size
         self.heart = heart
         if isinstance(size, int):
@@ -44,14 +44,14 @@ class GoL:
         self.game = game
         self.area = pg.Surface(
             (self.size[0]*self.tile_size, self.size[1]*self.tile_size), pg.SRCALPHA)
-        
+
         if not self.heart:
             self.area.fill((0, 0, 100))
         else:
             self.area.fill('gold')
-            self.barricade = pg.Surface(((self.size[0] + 2)*self.tile_size, (self.size[1] + 2)*self.tile_size), pg.SRCALPHA)
+            self.barricade = pg.Surface(
+                ((self.size[0] + 2)*self.tile_size, (self.size[1] + 2)*self.tile_size), pg.SRCALPHA)
             self.barricade.fill('grey25')
-            
 
         self.lock = False
         self.dead = False
@@ -65,8 +65,6 @@ class GoL:
                 self.area, 0, self.size[0]*self.tile_size, y, (0, 0, 0, 100))
 
         self.array = np.zeros((*self.size, 4), dtype=np.int32)
-
-        
 
         self.movelimit = 0
 
@@ -94,7 +92,7 @@ class GoL:
         if self._tile_size != self.tile_size:
             self.area = pg.transform.scale(
                 self.area, (self.size[0]*self._tile_size, self.size[1]*self._tile_size))
-            
+
             if self.heart:
                 self.barricade = pg.transform.scale(
                     self.barricade, ((self.size[0] + 2)*self._tile_size, (self.size[1] + 2)*self._tile_size))
@@ -104,19 +102,17 @@ class GoL:
         if Mouse.click:
             x, y = cursor
             if x >= self.pos[0] and x < self.pos[0] + self.size[0] and y >= self.pos[1] and y < self.pos[1] + self.size[1]:
-                if self.game.ui.current_tool == 'brush':
+                if self.game.ui.current_tool == 'draw':
                     # print(f"Clicked on {x}, {y}")
                     self.game.gol_array.array[y, x] = GoLArray.WHITE
                     # print(self.game.gol_array.array[self.pos[1]: self.pos[1] + self.size, self.pos[0]: self.pos[0] + self.size, 3])
                     self.lock = True
 
         self.array = self.game.gol_array.array[self.pos[1]:self.pos[1] +
-                                            self.size[1], self.pos[0]:self.pos[0]+self.size[0], :]   # for drawing
-                                            
+                                               self.size[1], self.pos[0]:self.pos[0]+self.size[0], :]   # for drawing
 
-        if self.game.ui.current_tool != 'brush':
+        if self.game.ui.current_tool != 'draw':
             self.lock = False
-        
 
     def draw(self, offset=(0, 0)):
         # draw if area is within the screen
@@ -134,7 +130,7 @@ class GoL:
             if self.heart:
                 self.game.window.blit(
                     self.barricade, ((self.pos[0]-1)*self.tile_size - offset[0], (self.pos[1] - 1)*self.tile_size - offset[1]))
-            
+
             self.game.window.blit(
                 self.area, (self.pos[0]*self.tile_size - offset[0], self.pos[1]*self.tile_size - offset[1]))
             for i in range(self.size[1]):
@@ -142,7 +138,6 @@ class GoL:
                     if self.array[i, j, 3] == 1:
                         pg.draw.rect(self.game.window, self.array[i, j, :3], (self.pos[0]*self.tile_size + j*self.tile_size -
                                      offset[0], self.pos[1]*self.tile_size + i*self.tile_size - offset[1], self.tile_size, self.tile_size))
-                        
 
 
 class GoLArray:
@@ -162,12 +157,11 @@ class GoLArray:
         self.running = True
         self.paused = False
         self.updating = True
-       
 
         self.prev_data = {}
 
     def update_area(self):
-        
+
         new_board = self.array.copy()
         for area in self.gameoflifes:
             # print(area.lock, area.pos)
@@ -190,10 +184,10 @@ class GoLArray:
                         new_board[i, j] = self.GREEN
                     else:
                         new_board[i, j] = self.BLACK
-   
+
             # Process the result, same interval as gol_array thread
             array = new_board[y:y+h, x:x+w, 3]
-          
+
             dx, dy = 0, 0
             if np.sum(array[0, :]) != 0 and np.sum(array[-2, :]) == 0 and area.pos[1] > 1:
                 dy -= 1
@@ -208,7 +202,7 @@ class GoLArray:
                 self.game.energy -= np.sum(array)
                 area.pos[0] += dx
                 area.pos[1] += dy
-          
+
             if self.prev_data[area] == area.pos:
                 area.movelimit += 1
             else:
@@ -216,22 +210,20 @@ class GoLArray:
             if area.movelimit >= MOVEMENT_INDICATOR:   # every 5 interval, calculate energy
                 # Create a mask of positions where array2 has 1s
                 array2_ones = (array == 1)
-                
+
                 # Create a mask of positions where array1 has 1s
                 array1_ones = (prev_array == 1)
-                
+
                 # Find positions where array2 has 1s and array1 does not have 1s
                 different_ones = array2_ones & ~array1_ones
-                
+
                 # Count the number of different 1s
                 self.game.generate_energy(np.sum(different_ones))
 
                 area.movelimit = 0
 
         self.array[:] = new_board
-        
 
-      
     def fuse_area(self):
         dead = []
         for i, area1 in enumerate(self.gameoflifes):
@@ -249,12 +241,11 @@ class GoLArray:
                     y = min(y1, y2)
                     size = max(x1 + area1.size[0], x2 + area2.size[0]) - \
                         x, max(y1 + area1.size[1], y2 + area2.size[1]) - y
-                    
+
                     if area1.heart or area2.heart:
                         self.game.heart = "dead"
 
                     area1.upsize(size, (x, y))
-                    
 
         for area in self.gameoflifes:
             if area.dead:
@@ -265,14 +256,13 @@ class GoLArray:
 
             if not area.lock:
                 self.prev_data[area] = area.pos.copy()
-        
 
     def daemon(self):
         while self.running:
             if not self.paused and self.gameoflifes:
                 self.fuse_area()
                 self.update_area()
-       
+
             time.sleep(0.2)            # global even update interval
 
         print("Thread stopped")

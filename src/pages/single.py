@@ -1,6 +1,7 @@
 import threading
 import pygame as pg
 import sys
+import random
 
 from ..util import Mouse
 from ..settings import *
@@ -8,6 +9,7 @@ from .base import Page
 from ..map import Map
 from ..gol import GoL, GoLArray
 from ..ui import UI
+
 
 
 def gen_asset(name, n_var, color, size=32):
@@ -35,7 +37,7 @@ class SinglePlayerPage(Page):
 
         self.ui = UI(self, (0, 0.8*HEIGHT, WIDTH, 0.2*HEIGHT))
 
-        self.energy = 0
+        self.energy = 50
 
         self.heart = None
 
@@ -43,7 +45,7 @@ class SinglePlayerPage(Page):
         self.assets.update(gen_asset('stone', 5, 'gray', size))
 
     def camera(self, offset, is_zoomable):
-        if pg.mouse.get_pressed()[0] and self.ui.current_tool == None:       # move map
+        if pg.mouse.get_pressed()[0] and self.ui.current_tool == 'move':       # move map
             dx, dy = pg.mouse.get_rel()
             offset[0] -= dx
             offset[1] -= dy
@@ -83,6 +85,10 @@ class SinglePlayerPage(Page):
         computation_thread.daemon = True  # Allow the thread to exit when the main program exits
         computation_thread.start()
 
+        
+
+        self.heart = GoL.spawn(self, 5, (2, random.randint(2, map_h-7)), self.gameoflifes, True) # spawn GoL
+
         while True:
             pg.display.set_caption(f"Single Player: {clock.get_fps():.2f}")
             Mouse.reset()
@@ -120,14 +126,14 @@ class SinglePlayerPage(Page):
 
             clock.tick(120)
 
-            if Mouse.click and not self.ui.rect.collidepoint(pg.mouse.get_pos()) and self.ui.current_tool == 'rectangle':            
+            if Mouse.click and not self.ui.rect.collidepoint(pg.mouse.get_pos()) and self.ui.current_tool == 'area':            
                 x, y = Mouse.map_pos(offset, self.map.tile_size)
-                if x != 0 and y != 0 and x != map_w - 4 and y != map_h - 4:
-                    if self.heart:
-                        GoL.spawn(self, 5, (x, y), self.gameoflifes) # spawn GoL
-                    else:
-                        self.heart = GoL.spawn(self, 5, (x, y), self.gameoflifes, True) # spawn GoL
+                if x > 0 and y > 0 and x < map_w - self.ui.area_size + 1 and y < map_h - self.ui.area_size + 1:
+                                  
+                    GoL.spawn(self, self.ui.area_size, (x, y), self.gameoflifes) # spawn GoL
+                    
                         
+                            
                    
 
             self.window.fill('black')

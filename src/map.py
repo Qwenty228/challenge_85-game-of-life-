@@ -1,6 +1,8 @@
 import pygame as pg
 import json
 
+from .settings import middle, WIDTH, HEIGHT, map_w, map_h
+
 
 
 class Map:
@@ -38,6 +40,17 @@ class Map:
         right = (offset[0] + surf.get_width())//self.tile_size + 1
         top = offset[1]//self.tile_size
         bottom = (offset[1] + surf.get_height())//self.tile_size + 1      
+
+        # 2 teams, half left blue and half right red
+        
+        if right <= middle:
+            surf.fill((0, 0, 155))
+        elif left >= middle:
+            surf.fill((155, 0, 0))
+        else:
+            # split screen
+            pg.draw.rect(surf, (0, 0, 155), (max(0, left) * self.tile_size - offset[0], max(0, top)*self.tile_size - offset[1], middle * self.tile_size, min(map_h, bottom)* self.tile_size))
+            pg.draw.rect(surf, (155, 0, 0), (middle * self.tile_size - offset[0], max(0, top)*self.tile_size - offset[1], (min(map_w, right) - middle) * self.tile_size, min(map_h, bottom)* self.tile_size))
 
         for l, layer in enumerate(self.tilemap):
             for x in range(left, right):

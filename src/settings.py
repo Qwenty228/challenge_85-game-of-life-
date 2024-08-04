@@ -1,6 +1,7 @@
 SIZE = WIDTH, HEIGHT = 800, 600
 
 map_size = map_w, map_h = 120, 60
+middle = 60
 
 # Colors
 WHITE = (255, 255, 255)

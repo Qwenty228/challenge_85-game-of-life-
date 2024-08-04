@@ -12,24 +12,27 @@ class UI:
 
         self.image.fill('gray10')
 
-        self.current_tool = None
+        self.current_tool = 'move'
         self.rect_start_pos = None
 
         # Define buttons
         self.buttons = [Button(self.image, "area", Font(size=15), 'gray40', 10, 10, self.rect.h*0.8, self.rect.h*0.8, self.select_rectangle_tool),
                         Button(self.image, "draw", Font(size=15), 'gray40', 20 + self.rect.h*0.8, 10, self.rect.h*0.8, self.rect.h*0.8, self.select_brush_tool),
                         Button(self.image, "move", Font(size=15), 'gray40', 30 + 2*self.rect.h*0.8, 10, self.rect.h*0.8, self.rect.h*0.8, self.deselect)]
+        
+
+        self.area_size = 5
 
     def select_rectangle_tool(self):
-        self.current_tool = 'rectangle'
+        self.current_tool = 'area'
         print(f"Selected tool: {self.current_tool}")
 
     def select_brush_tool(self):
-        self.current_tool = 'brush'
+        self.current_tool = 'draw'
         print(f"Selected tool: {self.current_tool}")
 
     def deselect(self):
-        self.current_tool = None
+        self.current_tool = "move"
         print(f"Deselected tool")
 
 
@@ -40,6 +43,8 @@ class UI:
 
         for button in self.buttons:
             button.update((x, y))
+            if self.current_tool == button.text:
+                button.hovered = True
             button.draw()
         
         self.game.window.blit(self.image, self.rect)
