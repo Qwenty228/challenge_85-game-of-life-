@@ -41,4 +41,7 @@ class UI:
         for button in self.buttons:
             button.update((x, y))
             button.draw()
+        
         self.game.window.blit(self.image, self.rect)
+        draw_text(self.game.window, f"Energy: {self.game.energy}", Font(size=15), 'white', WIDTH*0.8, HEIGHT*0.8+20, align='center')
+  

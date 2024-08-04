@@ -160,16 +160,22 @@ class GoLArray:
    
             # Process the result, same interval as gol_array thread
             array = new_board[y:y+h, x:x+w, 3]
-            
+          
+            dx, dy = 0, 0
             if np.sum(array[0, :]) != 0 and np.sum(array[-2, :]) == 0 and area.pos[1] > 1:
-                area.pos[1] -= 1
+                dy -= 1
             if np.sum(array[-1, :]) != 0 and np.sum(array[1, :]) == 0 and area.pos[1] + area.size[1] < self.size[1] - 1:
-                area.pos[1] += 1
+                dy += 1
             if np.sum(array[:, 0]) != 0 and np.sum(array[:, -2]) == 0 and area.pos[0] > 1:
-                area.pos[0] -= 1
+                dx -= 1
             if np.sum(array[:, -1]) != 0 and np.sum(array[:, 1]) == 0 and area.pos[0] + area.size[0] < self.size[0] - 1:
-                area.pos[0] += 1
+                dx += 1
 
+            if (dx != 0 or dy != 0) and self.game.energy > np.sum(array):
+                self.game.energy -= np.sum(array)
+                area.pos[0] += dx
+                area.pos[1] += dy
+          
             if self.prev_data[area] == area.pos:
                 area.movelimit += 1
             else:
@@ -189,8 +195,6 @@ class GoLArray:
 
                 area.movelimit = 0
 
-           
-      
         self.array[:] = new_board
         
 
@@ -232,7 +236,6 @@ class GoLArray:
                 self.fuse_area()
                 self.update_area()
        
-          
-            time.sleep(0.2)            
+            time.sleep(0.2)            # global even update interval
 
         print("Thread stopped")

@@ -6,7 +6,7 @@ from .base import Page
 class MainMenu(Page):
     def __init__(self, game):
         super().__init__(game)
-        self.font = pg.font.Font(None, 74)
+        self.font = pg.font.Font(None, 30)
         self.buttons = {
             "Single Player": pg.Rect(300, 150, 200, 50),
             "Multiplayer": pg.Rect(300, 250, 200, 50),
@@ -19,7 +19,7 @@ class MainMenu(Page):
         pass
 
     def draw(self):
-        self.window.fill('white')
+        self.window.fill('grey50')
         for label, rect in self.buttons.items():
             pg.draw.rect(self.window, "blue", rect)
             text = self.font.render(label, True, 'white')

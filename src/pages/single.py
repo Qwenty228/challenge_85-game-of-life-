@@ -134,8 +134,7 @@ class SinglePlayerPage(Page):
                 gol.update(Mouse.map_pos(offset, self.map.tile_size))
                 gol.draw(offset)
             
-            print(f"Energy: {self.energy}")
-       
+   
 
             self.ui.draw()
 
