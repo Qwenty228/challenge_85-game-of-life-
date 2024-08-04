@@ -31,9 +31,11 @@ class SinglePlayerPage(Page):
         self.map.load("map/1.json")
         self.gameoflifes = []
 
-        self.gol_array = GoLArray(self, (map_w, map_h))
+        self.gol_array = GoLArray(self, (map_w, map_h), self.gameoflifes)
 
         self.ui = UI(self, (0, 0.8*HEIGHT, WIDTH, 0.2*HEIGHT))
+
+        self.energy = 0
 
     def update_assets_size(self, size):
         self.assets.update(gen_asset('stone', 5, 'gray', size))
@@ -62,6 +64,11 @@ class SinglePlayerPage(Page):
 
         return offset, is_zoomable
 
+    
+    def generate_energy(self, n_energy):
+        self.energy += n_energy
+        
+    
     def update(self):
 
         clock = pg.time.Clock()
@@ -114,7 +121,7 @@ class SinglePlayerPage(Page):
             if Mouse.click and not self.ui.rect.collidepoint(pg.mouse.get_pos()) and self.ui.current_tool == 'rectangle':            
                 x, y = Mouse.map_pos(offset, self.map.tile_size)
                 if x != 0 and y != 0 and x != map_w - 4 and y != map_h - 4:
-                    GoL.spawn(self, 5, (x, y)) # spawn GoL
+                    GoL.spawn(self, 5, (x, y), self.gameoflifes) # spawn GoL
             
                    
 
@@ -126,6 +133,9 @@ class SinglePlayerPage(Page):
             for gol in self.gameoflifes:
                 gol.update(Mouse.map_pos(offset, self.map.tile_size))
                 gol.draw(offset)
+            
+            print(f"Energy: {self.energy}")
+       
 
             self.ui.draw()
 
