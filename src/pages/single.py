@@ -37,6 +37,8 @@ class SinglePlayerPage(Page):
 
         self.energy = 0
 
+        self.heart = None
+
     def update_assets_size(self, size):
         self.assets.update(gen_asset('stone', 5, 'gray', size))
 
@@ -121,8 +123,11 @@ class SinglePlayerPage(Page):
             if Mouse.click and not self.ui.rect.collidepoint(pg.mouse.get_pos()) and self.ui.current_tool == 'rectangle':            
                 x, y = Mouse.map_pos(offset, self.map.tile_size)
                 if x != 0 and y != 0 and x != map_w - 4 and y != map_h - 4:
-                    GoL.spawn(self, 5, (x, y), self.gameoflifes) # spawn GoL
-            
+                    if self.heart:
+                        GoL.spawn(self, 5, (x, y), self.gameoflifes) # spawn GoL
+                    else:
+                        self.heart = GoL.spawn(self, 5, (x, y), self.gameoflifes, True) # spawn GoL
+                        
                    
 
             self.window.fill('black')
@@ -133,17 +138,21 @@ class SinglePlayerPage(Page):
             for gol in self.gameoflifes:
                 gol.update(Mouse.map_pos(offset, self.map.tile_size))
                 gol.draw(offset)
+               
             
-   
 
             self.ui.draw()
 
             pg.display.flip()
+
+            if self.heart == 'dead':
+                self.game.change_page("Main Menu")
+                self.gol_array.running = False
+                break
 
             if self._pause:
                 result = self.pause_screen()
                 if result == -1:
                     self.game.change_page("Main Menu")
                     self.gol_array.running = False
-                    
                     break

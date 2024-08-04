@@ -11,32 +11,47 @@ class GoL:
     _tile_size = 32
 
     @classmethod
-    def spawn(cls, game, size, pos, gameoflifes):
+    def spawn(cls, game, size, pos, gameoflifes, heart = False):
         if isinstance(size, int):
             size = size, size
 
         x1, y1, w1, h1 = *pos, *size
         for gol in gameoflifes:
             x2, y2, w2, h2 = *gol.pos, *gol.size
+            if gol.heart:
+                x2 -= 1
+                y2 -= 1
+                w2 += 2
+                h2 += 2
+
             if not (x1 + w1 <= x2 or x1 >= x2 + w2 or y1 + h1 <= y2 or y1 >= y2 + h2):
                 print('overlapped')
                 return
         cls.gameoflifes = gameoflifes
-        cls.gameoflifes.append(cls(game, size, pos))
+        cls.gameoflifes.append(cls(game, size, pos, heart))
+        if heart:
+            return cls.gameoflifes[-1]
         
 
-    def __init__(self, game, size, pos) -> None:
+    def __init__(self, game, size, pos, heart = False) -> None:
         self.size = size
+        self.heart = heart
         if isinstance(size, int):
             self.size = size, size
         self.tile_size = game.map.tile_size
         self.pos = list(pos)
 
         self.game = game
-
         self.area = pg.Surface(
             (self.size[0]*self.tile_size, self.size[1]*self.tile_size), pg.SRCALPHA)
-        self.area.fill((0, 0, 100))
+        
+        if not self.heart:
+            self.area.fill((0, 0, 100))
+        else:
+            self.area.fill('gold')
+            self.barricade = pg.Surface(((self.size[0] + 2)*self.tile_size, (self.size[1] + 2)*self.tile_size), pg.SRCALPHA)
+            self.barricade.fill('grey25')
+            
 
         self.lock = False
         self.dead = False
@@ -51,9 +66,12 @@ class GoL:
 
         self.array = np.zeros((*self.size, 4), dtype=np.int32)
 
+        
+
         self.movelimit = 0
 
     def upsize(self, size, pos):
+        self.heart = False
         self.pos = list(pos)
         self.size = size
         if isinstance(size, int):
@@ -76,6 +94,11 @@ class GoL:
         if self._tile_size != self.tile_size:
             self.area = pg.transform.scale(
                 self.area, (self.size[0]*self._tile_size, self.size[1]*self._tile_size))
+            
+            if self.heart:
+                self.barricade = pg.transform.scale(
+                    self.barricade, ((self.size[0] + 2)*self._tile_size, (self.size[1] + 2)*self._tile_size))
+
             self.tile_size = self._tile_size
 
         if Mouse.click:
@@ -101,8 +124,17 @@ class GoL:
         right = (offset[0] + WIDTH)//self.tile_size
         top = offset[1]//self.tile_size
         bottom = (offset[1] + HEIGHT)//self.tile_size
+        if self.heart:
+            left -= 1
+            right += 1
+            top -= 1
+            bottom += 1
 
         if left - self.size[0] < self.pos[0] < right and top - self.size[1] < self.pos[1] < bottom:
+            if self.heart:
+                self.game.window.blit(
+                    self.barricade, ((self.pos[0]-1)*self.tile_size - offset[0], (self.pos[1] - 1)*self.tile_size - offset[1]))
+            
             self.game.window.blit(
                 self.area, (self.pos[0]*self.tile_size - offset[0], self.pos[1]*self.tile_size - offset[1]))
             for i in range(self.size[1]):
@@ -110,6 +142,7 @@ class GoL:
                     if self.array[i, j, 3] == 1:
                         pg.draw.rect(self.game.window, self.array[i, j, :3], (self.pos[0]*self.tile_size + j*self.tile_size -
                                      offset[0], self.pos[1]*self.tile_size + i*self.tile_size - offset[1], self.tile_size, self.tile_size))
+                        
 
 
 class GoLArray:
@@ -216,14 +249,18 @@ class GoLArray:
                     y = min(y1, y2)
                     size = max(x1 + area1.size[0], x2 + area2.size[0]) - \
                         x, max(y1 + area1.size[1], y2 + area2.size[1]) - y
+                    
+                    if area1.heart or area2.heart:
+                        self.game.heart = "dead"
+
                     area1.upsize(size, (x, y))
+                    
 
         for area in self.gameoflifes:
             if area.dead:
                 self.gameoflifes.remove(area)
                 if area in self.prev_data:
                     del self.prev_data[area]
-                del area
                 continue
 
             if not area.lock:
